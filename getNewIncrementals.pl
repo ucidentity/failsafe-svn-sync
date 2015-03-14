@@ -27,7 +27,13 @@ my($remoteUrl) = $ARGV[0];
 my($dumpDir) = $ARGV[1];
 
 my($currentRev) = `svn info $remoteUrl|egrep "^Revision: "` =~ /Revision: (.*)/;
-my($lastRev) = &getLastRev($dumpDir) + 1;
+my($lastRev) = &getLastRev($dumpDir);
+if(!defined($lastRev)) {
+  $lastRev = 0;
+}
+else {
+  $lastRev++;
+}
 
 if($lastRev <= $currentRev) {
   print "Retrieving from $lastRev to $currentRev\n";
