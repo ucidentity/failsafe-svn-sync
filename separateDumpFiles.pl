@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Usage: separateDumpFiles.pl <inputDumpFile> <outputDirectory>
+# Usage: separateDumpFiles.pl <outputDirectory> <inputDumpFile>
 
 #
 # Take a dump file from svnrdump or svndump and separate out each revision into a separate dump file.
@@ -18,35 +18,41 @@ use strict;
 
 if($#ARGV < 1)
 {
-  print STDERR "Usage: separateDumpFiles.pl <inputDumpFile> <outputDirectory>\n";
+  print STDERR "Usage: separateDumpFiles.pl <outputDirectory> <inputDumpFiles>\n";
   exit 1;
 }
 
-open(IN, "<$ARGV[0]") || die "Couldn't open $ARGV[0]";
-
-# capture header
-my($header);
-for my $i (0 .. 3) {
-  $_ = <IN>;
-  $header .= $_;
-}
-
+# globals
+my $fh;
 my($CURR_DMP) = "/tmp/current.dmp";
 
-open(my $fh, ">$CURR_DMP") || die "Couldn't open $CURR_DMP";
-
-my($rev);
-while(1) {
-  $rev = &readRevision($rev);
-  if(!defined($rev)) {
-    last;
+foreach my $i (1 .. $#ARGV)
+{
+  open(IN, "<$ARGV[$i]") || die "Couldn't open $ARGV[$i]";
+  
+  # capture header
+  my($header);
+  for my $i (0 .. 3) {
+    $_ = <IN>;
+    $header .= $_;
   }
+  
+  open($fh, ">$CURR_DMP") || die "Couldn't open $CURR_DMP";
+  
+  my($rev);
+  while(1) {
+    $rev = &readRevision($rev, $header);
+    if(!defined($rev)) {
+      last;
+    }
+  }
+  
+  close(IN);
 }
-
-close(IN);
 
 sub readRevision {
   my($curRev) = shift;
+  my($header) = shift;
   my($newRev);
   $_ = <IN>;
   my($line) = $_;
@@ -83,5 +89,5 @@ sub processCurrentDumpFile {
   my($rev) = shift;
   
   print "Processing $rev\n";
-  system("cp $CURR_DMP $ARGV[1]/$rev.dmp");
+  system("cp $CURR_DMP $ARGV[0]/$rev.dmp");
 }
