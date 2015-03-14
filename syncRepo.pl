@@ -46,8 +46,9 @@
 # Author: Brian Koehmstedt
 #
 
-require "common.pl";
-require "readProps.pl";
+my($inc) = $ENV{_} =~ /(.*)\/(.*)$/;
+require "$inc/common.pl";
+require "$inc/readProps.pl";
 
 if($#ARGV < 2) {
   print STDERR "syncRepo.pl <localRepoDir> <remoteRepo> <dumpFileDir>\n";
@@ -130,7 +131,7 @@ sub loadRange {
       if(runCommand("rm -rf tmp/$rev")) { die; }
       $lastSuccessfulTmpRepoDir = undef;
       print STDERR "Failed to load revision $rev: $?.  Attempting fail-safe load.\n";
-      &failSafeLoad($rev, "$dir/$rev.dmp");
+      &failSafeLoad($rev, $repoName, "$dir/$rev.dmp");
       print STDERR "Fail safe load of rev $rev succeeded.\n";
     }
     else
@@ -146,6 +147,7 @@ sub loadRange {
 sub failSafeLoad
 {
   my($rev) = shift;
+  my($repoName) = shift;
   my($dumpFile) = shift;
   
   open($fh, "<$dumpFile") || die "Couldn't open $dumpFile";
@@ -165,10 +167,10 @@ sub failSafeLoad
   }
   
   # get the full dump
-  if(-e "/tmp/$rev-full.dmp") {
-    print "Using /tmp/$rev-full.dmp\n";
-    if(runCommand("cp -p /tmp/$rev-full.dmp $workdir/$rev-full.dmp")) {
-      die "Couldn't copy /tmp/$rev-full.dmp";
+  if(-e "/tmp/$repoName/$rev-full.dmp") {
+    print "Using /tmp/$repoName/$rev-full.dmp\n";
+    if(runCommand("cp -p /tmp/$repoName/$rev-full.dmp $workdir/$rev-full.dmp")) {
+      die "Couldn't copy /tmp/$repoName/$rev-full.dmp";
     }
   }
   else
@@ -178,7 +180,8 @@ sub failSafeLoad
       die "Couldn't get full dump for rev $rev";
     }
     # If you want to cache these in /tmp
-    if(runCommand("cp $workdir/$rev-full.dmp /tmp")) {
+    mkdir("/tmp/$repoName", 0755);
+    if(runCommand("cp $workdir/$rev-full.dmp /tmp/$repoName")) {
       die "Couldn't copy $workdir/$rev-full.dmp to /tmp";
     }
   }
