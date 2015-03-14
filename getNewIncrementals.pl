@@ -27,20 +27,22 @@ my($dumpDir) = $ARGV[1];
 my($currentRev) = `svn info $remoteUrl|egrep "^Revision: "` =~ /Revision: (.*)/;
 my($lastRev) = &getLastRev() + 1;
 
-print "Retrieving from $lastRev to $currentRev\n";
-
-foreach my $rev ($lastRev .. $currentRev) {
-  print "Retrieving r$rev\n";
-  if(runCommand("svnrdump --non-interactive --incremental -r$rev dump $remoteUrl > /tmp/$rev.dmp")) {
-    unlink("/tmp/$rev.dmp");
-    die "Couldn't retrieve rev $rev from $remoteUrl";
-  }
+if($lastRev <= $currentRev) {
+  print "Retrieving from $lastRev to $currentRev\n";
   
-  if(runCommand("mv /tmp/$rev.dmp $dumpDir")) {
-    die "Couldn't move /tmp/$rev.dmp to $dumpDir";
+  foreach my $rev ($lastRev .. $currentRev) {
+    print "Retrieving r$rev\n";
+    if(runCommand("svnrdump --non-interactive --incremental -r$rev dump $remoteUrl > /tmp/$rev.dmp")) {
+      unlink("/tmp/$rev.dmp");
+      die "Couldn't retrieve rev $rev from $remoteUrl";
+    }
+    
+    if(runCommand("mv /tmp/$rev.dmp $dumpDir")) {
+      die "Couldn't move /tmp/$rev.dmp to $dumpDir";
+    }
+    
+    print "Successfully wrote $dumpDir/$rev.dmp\n";
   }
-  
-  print "Successfully wrote $dumpDir/$rev.dmp\n";
 }
 
 #
