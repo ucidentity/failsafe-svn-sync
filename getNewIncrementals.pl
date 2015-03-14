@@ -27,7 +27,7 @@ my($remoteUrl) = $ARGV[0];
 my($dumpDir) = $ARGV[1];
 
 my($currentRev) = `svn info $remoteUrl|egrep "^Revision: "` =~ /Revision: (.*)/;
-my($lastRev) = &getLastRev() + 1;
+my($lastRev) = &getLastRev($dumpDir) + 1;
 
 if($lastRev <= $currentRev) {
   print "Retrieving from $lastRev to $currentRev\n";
@@ -47,22 +47,4 @@ if($lastRev <= $currentRev) {
     
     print "Successfully wrote $dumpDir/$rev.dmp\n";
   }
-}
-
-#
-# Get the last revision number from our dump file directory.
-#
-sub getLastRev
-{
-  my($dir) = $dumpDir;
-  opendir(my $dh, $dir) || die "can't opendir $dir: $!";
-  my(@dumps) = sort {numFromDumpFile($a) <=> numFromDumpFile($b)} grep { /\d+\.dmp$/ } readdir($dh);
-  closedir $dh;
-  
-  my($lastRev);
-  foreach my $dumpfile (@dumps) {
-    $lastRev = numFromDumpFile($dumpfile);
-  }
-  
-  return $lastRev;
 }

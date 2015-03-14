@@ -35,4 +35,22 @@ sub numFromDumpFile {
   return $num;
 }
 
+#
+# Get the last revision number from a dump file directory.
+#
+sub getLastRev
+{
+  my($dir) = shift;
+  opendir(my $dh, $dir) || die "can't opendir $dir: $!";
+  my(@dumps) = sort {numFromDumpFile($a) <=> numFromDumpFile($b)} grep { /\d+\.dmp$/ } readdir($dh);
+  closedir $dh;
+  
+  my($lastRev);
+  foreach my $dumpfile (@dumps) {
+    $lastRev = numFromDumpFile($dumpfile);
+  }
+  
+  return $lastRev;
+}
+
 1;
