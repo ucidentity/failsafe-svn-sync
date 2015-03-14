@@ -13,6 +13,8 @@
 
 use strict;
 
+use File::Temp qw/ tempdir /;
+
 my($inc) = $ENV{_} =~ /(.*)\/(.*)$/;
 require "$inc/common.pl";
 
@@ -30,15 +32,17 @@ my($lastRev) = &getLastRev() + 1;
 if($lastRev <= $currentRev) {
   print "Retrieving from $lastRev to $currentRev\n";
   
+  my $tmpdir = tempdir(CLEANUP => 1);
+   
   foreach my $rev ($lastRev .. $currentRev) {
     print "Retrieving r$rev\n";
-    if(runCommand("svnrdump --non-interactive --incremental -r$rev dump $remoteUrl > /tmp/$rev.dmp")) {
-      unlink("/tmp/$rev.dmp");
+    if(runCommand("svnrdump --non-interactive --incremental -r$rev dump $remoteUrl > $tmpdir/$rev.dmp")) {
+      unlink("$tmpdir/$rev.dmp");
       die "Couldn't retrieve rev $rev from $remoteUrl";
     }
     
-    if(runCommand("mv /tmp/$rev.dmp $dumpDir")) {
-      die "Couldn't move /tmp/$rev.dmp to $dumpDir";
+    if(runCommand("mv $tmpdir/$rev.dmp $dumpDir")) {
+      die "Couldn't move $tmpdir/$rev.dmp to $dumpDir";
     }
     
     print "Successfully wrote $dumpDir/$rev.dmp\n";
