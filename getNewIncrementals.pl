@@ -13,7 +13,8 @@
 
 use strict;
 
-require "common.pl";
+my($inc) = $ENV{_} =~ /(.*)\/(.*)$/;
+require "$inc/common.pl";
 
 if($#ARGV < 1) {
   print STDERR "Usage: getNewIncrementals.pl <remoteUrl> <dumpFileOutputDir>\n";
