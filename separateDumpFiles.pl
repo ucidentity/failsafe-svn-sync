@@ -50,6 +50,8 @@ foreach my $i (1 .. $#ARGV)
   close(IN);
 }
 
+unlink $CURR_DMP;
+
 sub readRevision {
   my($curRev) = shift;
   my($header) = shift;
